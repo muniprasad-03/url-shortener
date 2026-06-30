@@ -25,12 +25,13 @@ services:
         value: localhost # Configure if you deploy a separate Redis instance
 
   # 2. React SPA Service (Frontend Static Site)
-  - type: static
+  - type: web
     name: url-shortener-frontend
+    runtime: static
     plan: free
     rootDir: frontend
     buildCommand: npm install && npm run build
-    publishPath: dist
+    staticPublishPath: dist
     routes:
       # Rewrite all routes to index.html for React SPA Router compatibility
       - type: rewrite
