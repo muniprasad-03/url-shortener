@@ -1,13 +1,6 @@
 # Render Blueprint Specification for one-click deployment
 services:
-  # 1. PostgreSQL Database Service
-  - type: db
-    name: url-shortener-db
-    databaseName: url_shortener
-    user: muni_user
-    plan: free
-
-  # 2. Spring Boot Web Service (Backend API)
+  # 1. Spring Boot Web Service (Backend API)
   - type: web
     name: url-shortener-backend
     env: docker
@@ -31,7 +24,7 @@ services:
       - key: REDIS_HOST
         value: localhost # Configure if you deploy a separate Redis instance
 
-  # 3. React SPA Service (Frontend Static Site)
+  # 2. React SPA Service (Frontend Static Site)
   - type: web
     name: url-shortener-frontend
     env: static
@@ -49,3 +42,9 @@ services:
           name: url-shortener-backend
           type: web
           property: host
+
+databases:
+  - name: url-shortener-db
+    databaseName: url_shortener
+    user: muni_user
+    plan: free
