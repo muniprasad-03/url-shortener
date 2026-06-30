@@ -219,7 +219,7 @@ function App() {
       <header className="header">
         <div className="brand">
           <Link2 className="brand-icon" size={28} />
-          <h1 className="brand-title">Antigravity Shortener</h1>
+          <h1 className="brand-title">URL Shortener</h1>
         </div>
         <a 
           href={`${API_BASE}/swagger-ui/index.html`} 
