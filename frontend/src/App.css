@@ -684,37 +684,38 @@
   gap: 1.5rem;
 }
 
-.tab-switcher {
+.result-switcher {
   display: flex;
   background: #f1f5f9;
   padding: 4px;
-  border-radius: 12px;
+  border-radius: 8px;
   gap: 4px;
   border: 1px solid var(--border-color);
+  margin-bottom: 1.25rem;
 }
 
-.tab-btn {
+.result-switch-btn {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.85rem;
+  padding: 0.6rem;
   border: none;
   background: transparent;
   color: var(--text-secondary);
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   cursor: pointer;
-  border-radius: 8px;
+  border-radius: 6px;
   transition: var(--transition-fast);
 }
 
-.tab-btn:hover {
+.result-switch-btn:hover {
   color: var(--text-primary);
 }
 
-.tab-btn.active {
+.result-switch-btn.active {
   background: #ffffff;
   color: var(--accent-purple);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);

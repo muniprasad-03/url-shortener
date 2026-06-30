@@ -31,7 +31,7 @@ function App() {
   // App UX States
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState(null);
-  const [activeTab, setActiveTab] = useState('shortener'); // 'shortener' or 'qr'
+  const [resultTab, setResultTab] = useState('link'); // 'link' or 'qr'
   const [copiedUrl, setCopiedUrl] = useState(null);
   
   // Toasts State
@@ -60,8 +60,8 @@ function App() {
 
     const payload = {
       originalUrl,
-      customAlias: activeTab === 'shortener' && customAlias.trim() ? customAlias.trim() : null,
-      expiresAt: activeTab === 'shortener' && expiresAt ? new Date(expiresAt).toISOString() : null
+      customAlias: customAlias.trim() ? customAlias.trim() : null,
+      expiresAt: expiresAt ? new Date(expiresAt).toISOString() : null
     };
 
     try {
@@ -77,7 +77,8 @@ function App() {
 
       if (res.status === 201 && body.success) {
         setResult(body.data);
-        addToast('success', activeTab === 'shortener' ? 'URL shortened successfully!' : 'QR Code generated successfully!');
+        setResultTab('link'); // Default to link view on success
+        addToast('success', 'URL shortened successfully!');
         setOriginalUrl('');
         setCustomAlias('');
         setExpiresAt('');
@@ -100,14 +101,6 @@ function App() {
     setCopiedUrl(url);
     addToast('success', 'Copied short link to clipboard!');
     setTimeout(() => setCopiedUrl(null), 2000);
-  };
-
-  const handleTabChange = (tab) => {
-    setActiveTab(tab);
-    setResult(null);
-    setOriginalUrl('');
-    setCustomAlias('');
-    setExpiresAt('');
   };
 
   return (
@@ -148,105 +141,103 @@ function App() {
 
       {/* Main Workspace (Centered Single Column) */}
       <main className="main-content-wrapper">
-        {/* Tab Switcher */}
-        <div className="tab-switcher">
-          <button 
-            className={`tab-btn ${activeTab === 'shortener' ? 'active' : ''}`}
-            onClick={() => handleTabChange('shortener')}
-          >
-            <Link2 size={16} />
-            <span>URL Shortener</span>
-          </button>
-          <button 
-            className={`tab-btn ${activeTab === 'qr' ? 'active' : ''}`}
-            onClick={() => handleTabChange('qr')}
-          >
-            <QrCode size={16} />
-            <span>QR Code</span>
-          </button>
-        </div>
+        <div className="panel animate-fade-in">
+          <h2 className="panel-title">
+            <Link2 size={20} className="brand-icon" />
+            <span>Create Short Link</span>
+          </h2>
+          
+          <form onSubmit={handleShorten} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            <div className="form-group">
+              <label htmlFor="long-url">Destination URL</label>
+              <div className="input-container">
+                <Link2 className="input-icon" size={18} />
+                <input 
+                  id="long-url"
+                  className="form-input"
+                  type="url" 
+                  placeholder="https://example.com/very-long-link-destination" 
+                  value={originalUrl}
+                  onChange={(e) => setOriginalUrl(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
 
-        {/* Content Panels */}
-        {activeTab === 'shortener' ? (
-          <div className="panel animate-fade-in">
-            <h2 className="panel-title">
-              <Link2 size={20} className="brand-icon" />
-              <span>Create Short Link</span>
-            </h2>
-            
-            <form onSubmit={handleShorten} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            <div className="form-row">
               <div className="form-group">
-                <label htmlFor="long-url">Destination URL</label>
+                <label htmlFor="custom-alias">Custom Alias (Optional)</label>
                 <div className="input-container">
-                  <Link2 className="input-icon" size={18} />
+                  <span className="input-icon" style={{ fontSize: '0.9rem', fontWeight: 600 }}>/</span>
                   <input 
-                    id="long-url"
+                    id="custom-alias"
                     className="form-input"
-                    type="url" 
-                    placeholder="https://example.com/very-long-link-destination" 
-                    value={originalUrl}
-                    onChange={(e) => setOriginalUrl(e.target.value)}
-                    required
+                    type="text" 
+                    placeholder="my-alias" 
+                    value={customAlias}
+                    onChange={(e) => setCustomAlias(e.target.value)}
                   />
                 </div>
               </div>
 
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="custom-alias">Custom Alias (Optional)</label>
-                  <div className="input-container">
-                    <span className="input-icon" style={{ fontSize: '0.9rem', fontWeight: 600 }}>/</span>
-                    <input 
-                      id="custom-alias"
-                      className="form-input"
-                      type="text" 
-                      placeholder="my-alias" 
-                      value={customAlias}
-                      onChange={(e) => setCustomAlias(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="expiration">Expiration Date (Optional)</label>
-                  <div className="input-container">
-                    <Calendar className="input-icon" size={18} />
-                    <input 
-                      id="expiration"
-                      className="form-input"
-                      type="datetime-local" 
-                      value={expiresAt}
-                      onChange={(e) => setExpiresAt(e.target.value)}
-                    />
-                  </div>
+              <div className="form-group">
+                <label htmlFor="expiration">Expiration Date (Optional)</label>
+                <div className="input-container">
+                  <Calendar className="input-icon" size={18} />
+                  <input 
+                    id="expiration"
+                    className="form-input"
+                    type="datetime-local" 
+                    value={expiresAt}
+                    onChange={(e) => setExpiresAt(e.target.value)}
+                  />
                 </div>
               </div>
+            </div>
 
-              <button type="submit" className="btn-primary" disabled={isLoading}>
-                {isLoading ? (
-                  <>
-                    <Loader2 size={18} className="spinner" />
-                    <span>Generating...</span>
-                  </>
-                ) : (
-                  <span>Shorten URL</span>
+            <button type="submit" className="btn-primary" disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <Loader2 size={18} className="spinner" />
+                  <span>Shortening URL...</span>
+                </>
+              ) : (
+                <span>Shorten URL</span>
+              )}
+            </button>
+          </form>
+
+          {/* Short URL Result with tab switcher */}
+          {result && (
+            <div className="result-card animate-fade-in" style={{ marginTop: '1.5rem' }}>
+              <div className="result-switcher">
+                <button 
+                  type="button"
+                  className={`result-switch-btn ${resultTab === 'link' ? 'active' : ''}`}
+                  onClick={() => setResultTab('link')}
+                >
+                  <Link2 size={14} />
+                  <span>Short Link</span>
+                </button>
+                {result.qrCodeBase64 && (
+                  <button 
+                    type="button"
+                    className={`result-switch-btn ${resultTab === 'qr' ? 'active' : ''}`}
+                    onClick={() => setResultTab('qr')}
+                  >
+                    <QrCode size={14} />
+                    <span>QR Code</span>
+                  </button>
                 )}
-              </button>
-            </form>
+              </div>
 
-            {/* Short URL Result */}
-            {result && (
-              <div className="result-card animate-fade-in" style={{ marginTop: '1.5rem' }}>
-                <div className="result-header">
-                  <Check size={18} />
-                  <span>Success! Your short URL is ready:</span>
-                </div>
-                
-                <div className="result-url-display">
+              {resultTab === 'link' ? (
+                <div className="result-url-display animate-fade-in">
                   <span className="short-url-text">
                     {result.shortUrl}
                   </span>
                   <button 
+                    type="button"
                     className={`copy-btn ${copiedUrl === result.shortUrl ? 'copied' : ''}`}
                     onClick={() => copyToClipboard(result.shortUrl)}
                   >
@@ -263,49 +254,8 @@ function App() {
                     )}
                   </button>
                 </div>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="panel animate-fade-in">
-            <h2 className="panel-title">
-              <QrCode size={20} className="brand-icon" />
-              <span>Generate QR Code</span>
-            </h2>
-            
-            <form onSubmit={handleShorten} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-              <div className="form-group">
-                <label htmlFor="qr-url">Target URL</label>
-                <div className="input-container">
-                  <Link2 className="input-icon" size={18} />
-                  <input 
-                    id="qr-url"
-                    className="form-input"
-                    type="url" 
-                    placeholder="https://example.com/url-to-encode" 
-                    value={originalUrl}
-                    onChange={(e) => setOriginalUrl(e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-
-              <button type="submit" className="btn-primary" disabled={isLoading}>
-                {isLoading ? (
-                  <>
-                    <Loader2 size={18} className="spinner" />
-                    <span>Generating...</span>
-                  </>
-                ) : (
-                  <span>Generate QR Code</span>
-                )}
-              </button>
-            </form>
-
-            {/* QR Code Result */}
-            {result && result.qrCodeBase64 && (
-              <div className="result-card animate-fade-in" style={{ marginTop: '1.5rem' }}>
-                <div className="qr-code-section">
+              ) : (
+                <div className="qr-code-section animate-fade-in">
                   <div className="qr-image-container">
                     <img src={result.qrCodeBase64} alt="Short URL QR Code" />
                   </div>
@@ -319,10 +269,10 @@ function App() {
                     Download QR Code (PNG)
                   </a>
                 </div>
-              </div>
-            )}
-          </div>
-        )}
+              )}
+            </div>
+          )}
+        </div>
       </main>
     </div>
   );
