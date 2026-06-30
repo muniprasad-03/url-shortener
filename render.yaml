@@ -1,0 +1,51 @@
+# Render Blueprint Specification for one-click deployment
+services:
+  # 1. PostgreSQL Database Service
+  - type: db
+    name: url-shortener-db
+    databaseName: url_shortener
+    user: muni_user
+    plan: free
+
+  # 2. Spring Boot Web Service (Backend API)
+  - type: web
+    name: url-shortener-backend
+    env: docker
+    plan: free
+    dockerfilePath: Dockerfile
+    dockerContext: .
+    healthCheckPath: /actuator/health
+    envVars:
+      # Inject connection details from the PostgreSQL database service
+      - key: SPRING_DATASOURCE_URL
+        value: jdbc:postgresql://${url-shortener-db.host}:${url-shortener-db.port}/${url-shortener-db.databaseName}?sslmode=require
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase:
+          name: url-shortener-db
+          property: user
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase:
+          name: url-shortener-db
+          property: password
+      # Optional Redis Cache Integration (App automatically falls back to MySQL/Postgres if offline)
+      - key: REDIS_HOST
+        value: localhost # Configure if you deploy a separate Redis instance
+
+  # 3. React SPA Service (Frontend Static Site)
+  - type: web
+    name: url-shortener-frontend
+    env: static
+    plan: free
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    publishPath: dist
+    routes:
+      # Rewrite all routes to index.html for React SPA Router compatibility
+      - src: /*
+        dest: /index.html
+    envVars:
+      - key: VITE_API_BASE
+        fromService:
+          name: url-shortener-backend
+          type: web
+          property: host
